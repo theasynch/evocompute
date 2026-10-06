@@ -53,7 +53,11 @@ The real strength of EvoCompute goes beyond adaptive switching—it creates **ma
 
 ### 1. The Mission Utility Function
 EvoCompute continuously solves for the maximum **Mission Utility ($U$)**:
-$$ U = w_pP + w_eE + w_rR + w_sS - w_tT - w_cC $$
+
+$$
+U = w_pP + w_eE + w_rR + w_sS - w_tT - w_cC
+$$
+
 Where:
 - $P$ = Performance | $E$ = Energy Efficiency | $R$ = Reliability 
 - $S$ = Security/Safety | $T$ = Thermal/Latency Penalty | $C$ = Lifecycle-carbon cost
@@ -63,21 +67,28 @@ Where:
 By deploying *one adaptive platform* serving multiple mission profiles instead of spinning multiple fixed variants, the Non-Recurring Engineering (NRE) savings scale directly. 
 
 For a baseline three-product portfolio (one base chip + two variants), the net saving can be modeled as:
-**`Net NRE saving = (2d − e − 2m) × F`**
-- **$F$**: Base ASIC design cost (e.g., ~$48M at 28nm)
-- **$d$**: Cost of a derivative design (e.g., 35% of $F$)
-- **$e$**: EvoCompute logic overhead (e.g., 15-30% of $F$)
-- **$m$**: Cost to certify a new mission profile (e.g., 4% of $F$)
+
+$$
+\text{Net NRE saving} = (2d - e - 2m) \times F
+$$
+
+- $F$: Base ASIC design cost (e.g., ~$48M at 28nm)
+- $d$: Cost of a derivative design (e.g., 35% of $F$)
+- $e$: EvoCompute logic overhead (e.g., 15-30% of $F$)
+- $m$: Cost to certify a new mission profile (e.g., 4% of $F$)
 
 Even at a conservative 30% overhead ($e=0.3$) and 35% derivative cost ($d=0.35$), **a single three-product portfolio avoids ~$15.4M in redesign costs**.
 
 ### 3. Customer ROI (Resilience vs. Energy)
 While dynamic energy saving is useful (e.g., 15% off a 20W node yields ~$2.60/year), the true ROI of EvoCompute stems from **avoided stoppages** due to hardware fatigue or thermal throttling.
 
-**`Annual Resilience Value = λ × μ × T × C`**
-- **$λ$**: Compute-attributable stoppages per year
-- **$μ$**: Fraction mitigated by EvoCompute's graceful degradation
-- **$T$**: Hours per stoppage | **$C$**: Cost per hour of downtime
+$$
+\text{Annual Resilience Value} = \lambda \times \mu \times T \times C
+$$
+
+- $\lambda$: Compute-attributable stoppages per year
+- $\mu$: Fraction mitigated by EvoCompute's graceful degradation
+- $T$: Hours per stoppage | $C$: Cost per hour of downtime
 
 At a baseline industrial downtime cost of $36,000/hour, preventing just *one compute-induced plant stoppage per 7,000 node-years* completely pays for the EvoCompute silicon overhead. In high-stakes automotive or FMCG sectors, this payback scales exponentially.
 
