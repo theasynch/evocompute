@@ -47,6 +47,40 @@ evocompute/
 - **Hardware Constitution (`hardware_constitution.sv`):** An independent safety block. It reviews the requested state against current thermal limits. If the requested state would push the chip past safe thermal limits (e.g. 85°C warning limit, 100°C critical limit), it overrides the state to protect the hardware and flags a violation.
 - **EvoCompute Top (`evocompute_top.sv`):** Connects the sensors, policy engine, and constitution, then gates the clock for the `picorv32` core dynamically based on the finalized state.
 
+## Quantitative Impact & Economic Viability
+
+The real strength of EvoCompute goes beyond adaptive switching—it creates **mathematical and economic viability** across three critical layers: Operational Utility, NRE Savings, and Fleet Resilience.
+
+### 1. The Mission Utility Function
+EvoCompute continuously solves for the maximum **Mission Utility ($U$)**:
+$$ U = w_pP + w_eE + w_rR + w_sS - w_tT - w_cC $$
+Where:
+- $P$ = Performance | $E$ = Energy Efficiency | $R$ = Reliability 
+- $S$ = Security/Safety | $T$ = Thermal/Latency Penalty | $C$ = Lifecycle-carbon cost
+*(Weights $w$ vary per mission profile. The hardware constitution restricts the solution space to guarantee survival, allowing the Policy Engine to freely maximize $U$.)*
+
+### 2. Platform Economics (Net NRE Savings)
+By deploying *one adaptive platform* serving multiple mission profiles instead of spinning multiple fixed variants, the Non-Recurring Engineering (NRE) savings scale directly. 
+
+For a baseline three-product portfolio (one base chip + two variants), the net saving can be modeled as:
+**`Net NRE saving = (2d − e − 2m) × F`**
+- **$F$**: Base ASIC design cost (e.g., ~$48M at 28nm)
+- **$d$**: Cost of a derivative design (e.g., 35% of $F$)
+- **$e$**: EvoCompute logic overhead (e.g., 15-30% of $F$)
+- **$m$**: Cost to certify a new mission profile (e.g., 4% of $F$)
+
+Even at a conservative 30% overhead ($e=0.3$) and 35% derivative cost ($d=0.35$), **a single three-product portfolio avoids ~$15.4M in redesign costs**.
+
+### 3. Customer ROI (Resilience vs. Energy)
+While dynamic energy saving is useful (e.g., 15% off a 20W node yields ~$2.60/year), the true ROI of EvoCompute stems from **avoided stoppages** due to hardware fatigue or thermal throttling.
+
+**`Annual Resilience Value = λ × μ × T × C`**
+- **$λ$**: Compute-attributable stoppages per year
+- **$μ$**: Fraction mitigated by EvoCompute's graceful degradation
+- **$T$**: Hours per stoppage | **$C$**: Cost per hour of downtime
+
+At a baseline industrial downtime cost of $36,000/hour, preventing just *one compute-induced plant stoppage per 7,000 node-years* completely pays for the EvoCompute silicon overhead. In high-stakes automotive or FMCG sectors, this payback scales exponentially.
+
 ## Simulation and Results
 
 The testbench (`evocompute_tb.sv`) stresses the logic across five distinct stages to prove the adaptive behavior.
