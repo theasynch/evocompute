@@ -6,24 +6,48 @@ module policy_engine (
     
     input  wire [7:0] temp_sensor,
     input  wire [7:0] workload_sensor,
+    input  wire [1:0] mission_profile,
+    input  wire [1:0] actual_cfg, // Feedback from constitution
     
     // Desired configuration from policy
-    // 0: Low Power, 1: Balanced, 2: High Performance
-    output reg [1:0] desired_cfg
+    output wire [1:0] desired_cfg
 );
 
-    always_ff @(posedge clk or negedge rst_n) begin
-        if (!rst_n) begin
-            desired_cfg <= 2'd1; // Default to balanced
-        end else begin
-            // Simple mapping: workload -> performance tier
-            if (workload_sensor > 8'd80)
-                desired_cfg <= 2'd2; // High perf
-            else if (workload_sensor < 8'd30)
-                desired_cfg <= 2'd0; // Low power
-            else
-                desired_cfg <= 2'd1; // Balanced
-        end
-    end
+    wire [3:0] w_p, w_e, w_r, w_s;
+    wire [7:0] predicted_workload, predicted_temp;
+    wire [1:0] learned_cfg;
+
+    mission_optimizer m_opt (
+        .clk(clk),
+        .rst_n(rst_n),
+        .mission_profile(mission_profile),
+        .w_p(w_p), .w_e(w_e), .w_r(w_r), .w_s(w_s)
+    );
+
+    predictor pred (
+        .clk(clk),
+        .rst_n(rst_n),
+        .workload_sensor(workload_sensor),
+        .temp_sensor(temp_sensor),
+        .predicted_workload(predicted_workload),
+        .predicted_temp(predicted_temp)
+    );
+
+    learning_engine learn (
+        .clk(clk),
+        .rst_n(rst_n),
+        .predicted_workload(predicted_workload),
+        .w_p(w_p),
+        .w_e(w_e),
+        .learned_cfg(learned_cfg)
+    );
+
+    switching_economics econ (
+        .clk(clk),
+        .rst_n(rst_n),
+        .proposed_cfg(learned_cfg),
+        .actual_cfg(actual_cfg),
+        .econ_approved_cfg(desired_cfg)
+    );
 
 endmodule

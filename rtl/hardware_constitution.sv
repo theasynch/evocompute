@@ -6,6 +6,9 @@ module hardware_constitution (
     
     input  wire [7:0] temp_sensor,
     input  wire [1:0] desired_cfg,
+    input  wire fault_recovery_active,
+    input  wire [1:0] recovery_cfg,
+    input  wire lockdown_active,
     
     // Certified Configuration Set Outputs
     output reg [1:0] actual_cfg,
@@ -17,18 +20,30 @@ module hardware_constitution (
             actual_cfg <= 2'd1;
             constitution_violation_flag <= 1'b0;
         end else begin
-            // Constitution Rule 1: Critical Thermal Limit
-            // If temperature > 100C, force Low Power (0)
-            if (temp_sensor > 8'd100) begin
+            // Constitution rules are hierarchical and absolute
+
+            // Rule 0: Security Lockdown
+            if (lockdown_active) begin
+                actual_cfg <= 2'd0; // Lowest power, restricted
+                constitution_violation_flag <= 1'b1;
+            end
+            // Rule 1: Fault Recovery
+            else if (fault_recovery_active) begin
+                actual_cfg <= recovery_cfg;
+                constitution_violation_flag <= 1'b1;
+            end
+            // Rule 2: Critical Thermal Limit
+            else if (temp_sensor > 8'd100) begin
                 actual_cfg <= 2'd0; // Force Low Power
                 constitution_violation_flag <= 1'b1;
             end
-            // Constitution Rule 2: Thermal Limit
-            // If temperature > 85C, forbid High Performance (2)
+            // Rule 3: Thermal Warning
             else if (temp_sensor > 8'd85 && desired_cfg == 2'd2) begin
                 actual_cfg <= 2'd1; // Downgrade to Balanced safely
                 constitution_violation_flag <= 1'b1;
-            end else begin
+            end 
+            // Default: Approve desired config
+            else begin
                 actual_cfg <= desired_cfg;
                 constitution_violation_flag <= 1'b0;
             end

@@ -7,6 +7,9 @@ module evocompute_tb;
     reg resetn;
     reg [7:0] tb_temp;
     reg [7:0] tb_workload;
+    reg       tb_fault;
+    reg       tb_security_threat;
+    reg [1:0] tb_mission_profile;
     
     wire mem_valid;
     wire mem_instr;
@@ -25,6 +28,9 @@ module evocompute_tb;
         .resetn           (resetn),
         .tb_temp          (tb_temp),
         .tb_workload      (tb_workload),
+        .tb_fault         (tb_fault),
+        .tb_security_threat(tb_security_threat),
+        .tb_mission_profile(tb_mission_profile),
         .mem_valid        (mem_valid),
         .mem_instr        (mem_instr),
         .mem_ready        (mem_ready),
@@ -61,6 +67,9 @@ module evocompute_tb;
         resetn = 0;
         tb_temp = 8'd25;
         tb_workload = 8'd0;
+        tb_fault = 1'b0;
+        tb_security_threat = 1'b0;
+        tb_mission_profile = 2'd0;
         #20 resetn = 1;
 
         $display("Time | Temp | Workload | Config | Violation");

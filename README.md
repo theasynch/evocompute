@@ -27,11 +27,20 @@ evocompute/
 ├── docs/                      # Documentation and images
 │   └── img/waveform.png       # Simulation waveform plot
 ├── rtl/                       # Verilog / SystemVerilog Sources
+│   ├── accelerator.sv         # Dynamic compute accelerator
+│   ├── dsp.sv                 # Dynamic DSP block
 │   ├── evocompute_top.sv      # Top-level integration wrapping the CPU and Evo logic
-│   ├── hardware_constitution.sv # Enforces physical thermal limits
+│   ├── fault_recovery_engine.sv # Formal fault monitoring
+│   ├── hardware_constitution.sv # Enforces physical thermal limits and security rules
+│   ├── learning_engine.sv     # Dynamic thresholding based on mission weights
+│   ├── mission_optimizer.sv   # Maps mission profiles to utility weights
 │   ├── picorv32.v             # The underlying RISC-V core
-│   ├── policy_engine.sv       # Maps workload to desired configuration state
-│   └── sensor_mock.sv         # Mocks environmental telemetry (temp/workload)
+│   ├── policy_engine.sv       # Pipeline wrapper for prediction and state selection
+│   ├── predictor.sv           # EWMA state prediction
+│   ├── redundancy_manager.sv  # Manages lockstep voting / redundancy 
+│   ├── security_monitor.sv    # Detects incoming threat conditions
+│   ├── sensor_mock.sv         # Mocks environmental telemetry
+│   └── switching_economics.sv # Hysteresis logic to prevent thrashing
 ├── tb/                        # Testbenches
 │   └── evocompute_tb.sv       # Main testbench injecting dynamic workloads/thermal events
 └── README.md                  # This file
@@ -39,13 +48,17 @@ evocompute/
 
 ### Module Descriptions
 
-- **Sensor Mock (`sensor_mock.sv`):** Provides environmental data simulating thermal sensors and workload monitors.
-- **Policy Engine (`policy_engine.sv`):** Interprets the workload data and requests one of three states:
-  - `0`: Low Power
-  - `1`: Balanced
-  - `2`: High Performance
-- **Hardware Constitution (`hardware_constitution.sv`):** An independent safety block. It reviews the requested state against current thermal limits. If the requested state would push the chip past safe thermal limits (e.g. 85°C warning limit, 100°C critical limit), it overrides the state to protect the hardware and flags a violation.
-- **EvoCompute Top (`evocompute_top.sv`):** Connects the sensors, policy engine, and constitution, then gates the clock for the `picorv32` core dynamically based on the finalized state.
+- **Sensor Mock (`sensor_mock.sv`):** Provides environmental data simulating thermal sensors, workload monitors, fault sensors, and security threats.
+- **Policy Engine (`policy_engine.sv`):** Acts as a high-level wrapper that instantiates advanced analytical blocks to determine the optimal configuration:
+  - **Predictor (`predictor.sv`):** Uses an Exponential Weighted Moving Average (EWMA) to predict upcoming workload and temperature spikes.
+  - **Mission Optimizer (`mission_optimizer.sv`):** Translates high-level mission profiles into utility function weights.
+  - **Learning Engine (`learning_engine.sv`):** Evaluates predicted metrics against dynamically adjusted mission weights to suggest an optimal state.
+  - **Switching Economics (`switching_economics.sv`):** Applies hysteresis to prevent thrashing between configuration states, enforcing a stability penalty.
+- **Hardware Constitution (`hardware_constitution.sv`):** An independent, formally certified safety block. It enforces strict invariants, overriding the Policy Engine during thermal emergencies, hardware faults (from **`fault_recovery_engine.sv`**), or security lockdowns (from **`security_monitor.sv`**).
+- **Dynamic Compute Blocks:**
+  - **Accelerator (`accelerator.sv`) & DSP (`dsp.sv`):** Compute units that dynamically power up or gate their clocks depending on the active configuration.
+  - **Redundancy Manager (`redundancy_manager.sv`):** Asserts voting logic between duplicated cores during "Reliable" states, shutting down redundancy during pure "Performance" states.
+- **EvoCompute Top (`evocompute_top.sv`):** Connects the sensors, policy engine, constitution, and dynamic IP blocks, adapting the system topology in real-time.
 
 ## Quantitative Impact & Economic Viability
 
