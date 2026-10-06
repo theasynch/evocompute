@@ -1,0 +1,4 @@
+*.vcd
+*.vvp
+*.vvp.out
+sim_results.txt
